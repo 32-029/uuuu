@@ -27,14 +27,12 @@
       <h3>근사 해 (소각도)</h3>
       <canvas id="approxCanvas" width="400" height="400"></canvas>
     </div>
-  </div>  <h3>주기 비교 (시뮬레이션 측정값)</h3>
+  </div>  <h3>주기 오차 비교</h3>
   <table class="result-table">
     <thead>
       <tr>
-        <th>초기 각도 (도)</th>
-        <th>일반 해 주기 (s)</th>
-        <th>근사 해 주기 (s)</th>
-        <th>오차 (%)</th>
+        <th>θ₀ (°)</th>
+        <th>실제 주기 오차 (%)</th>
       </tr>
     </thead>
     <tbody id="resultBody"></tbody>
@@ -145,8 +143,12 @@
         t += dt;
 
         if (generalPeriod !== null && approxPeriod !== null) {
-          const errorPercent = Math.abs(generalPeriod - approxPeriod) / approxPeriod * 100;
-          const row = `<tr><td>${theta0.toFixed(1)}</td><td>${generalPeriod.toFixed(3)}</td><td>${approxPeriod.toFixed(3)}</td><td>${errorPercent.toFixed(2)}</td></tr>`;
+          const errorPercent = ((generalPeriod - approxPeriod) / approxPeriod) * 100;
+          const row = `
+            <tr>
+              <td>${theta0.toFixed(1)}</td>
+              <td>${errorPercent >= 0 ? "+" : ""}${errorPercent.toFixed(3)}%</td>
+            </tr>`;
           resultBody.insertAdjacentHTML("beforeend", row);
           return; // 측정 후 종료
         }
