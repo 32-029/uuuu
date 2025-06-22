@@ -31,6 +31,7 @@
     const dt = 0.01;
 
     const toRad = (deg) => deg * Math.PI / 180;
+    const toDeg = (rad) => rad * 180 / Math.PI;
 
     const thetaInput = document.getElementById("theta0");
     const startBtn = document.getElementById("startBtn");
@@ -45,72 +46,62 @@
     });
 
     function simulate(theta0) {
-      ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
-      ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
+      let t = 0;
+
+      // 일반 해 변수
+      let thetaVal = toRad(theta0);
+      let vel = 0;
+
+      // 근사 해 변수
+      const omega = Math.sqrt(g / L);
 
       const originX = generalCanvas.width / 2;
       const originY = 100;
       const scale = 150;
-      let t = 0;
-
-      let thetaVal = theta0;
-      let vel = 0;
-      const omega = Math.sqrt(g / L);
-
-      let approxTheta = theta0;
 
       function animate() {
-        for (let step = 0; step < 5; step++) { // 빠르게 여러 스텝 실행
-          // 일반 해
-          const acc = -(g / L) * Math.sin(toRad(thetaVal));
-          vel += acc * dt;
-          thetaVal += vel * dt;
+        ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
+        ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
 
-          const x = originX + L * scale * Math.sin(toRad(thetaVal));
-          const y = originY + L * scale * Math.cos(toRad(thetaVal));
+        // 일반 해 업데이트
+        const acc = -(g / L) * Math.sin(thetaVal);
+        vel += acc * dt;
+        thetaVal += vel * dt;
 
-          ctxGeneral.beginPath();
-          ctxGeneral.arc(x, y, 1.5, 0, 2 * Math.PI);
-          ctxGeneral.fillStyle = "#ff6384";
-          ctxGeneral.fill();
+        const x = originX + L * scale * Math.sin(thetaVal);
+        const y = originY + L * scale * Math.cos(thetaVal);
 
-          ctxGeneral.beginPath();
-          ctxGeneral.moveTo(originX, originY);
-          ctxGeneral.lineTo(x, y);
-          ctxGeneral.strokeStyle = "#ff6384";
-          ctxGeneral.lineWidth = 1;
-          ctxGeneral.stroke();
+        ctxGeneral.beginPath();
+        ctxGeneral.moveTo(originX, originY);
+        ctxGeneral.lineTo(x, y);
+        ctxGeneral.strokeStyle = "#ff6384";
+        ctxGeneral.lineWidth = 2;
+        ctxGeneral.stroke();
 
-          ctxGeneral.beginPath();
-          ctxGeneral.arc(x, y, 8, 0, 2 * Math.PI);
-          ctxGeneral.fillStyle = "#ff6384";
-          ctxGeneral.fill();
+        ctxGeneral.beginPath();
+        ctxGeneral.arc(x, y, 8, 0, 2 * Math.PI);
+        ctxGeneral.fillStyle = "#ff6384";
+        ctxGeneral.fill();
 
-          // 근사 해
-          approxTheta = theta0 * Math.cos(omega * t);
+        // 근사 해 업데이트 (theta0는 도 단위니까 변환)
+        const approxTheta = toRad(theta0) * Math.cos(omega * t);
 
-          const ax = originX + L * scale * Math.sin(toRad(approxTheta));
-          const ay = originY + L * scale * Math.cos(toRad(approxTheta));
+        const ax = originX + L * scale * Math.sin(approxTheta);
+        const ay = originY + L * scale * Math.cos(approxTheta);
 
-          ctxApprox.beginPath();
-          ctxApprox.arc(ax, ay, 1.5, 0, 2 * Math.PI);
-          ctxApprox.fillStyle = "#4bc0c0";
-          ctxApprox.fill();
+        ctxApprox.beginPath();
+        ctxApprox.moveTo(originX, originY);
+        ctxApprox.lineTo(ax, ay);
+        ctxApprox.strokeStyle = "#4bc0c0";
+        ctxApprox.lineWidth = 2;
+        ctxApprox.stroke();
 
-          ctxApprox.beginPath();
-          ctxApprox.moveTo(originX, originY);
-          ctxApprox.lineTo(ax, ay);
-          ctxApprox.strokeStyle = "#4bc0c0";
-          ctxApprox.lineWidth = 1;
-          ctxApprox.stroke();
+        ctxApprox.beginPath();
+        ctxApprox.arc(ax, ay, 8, 0, 2 * Math.PI);
+        ctxApprox.fillStyle = "#4bc0c0";
+        ctxApprox.fill();
 
-          ctxApprox.beginPath();
-          ctxApprox.arc(ax, ay, 8, 0, 2 * Math.PI);
-          ctxApprox.fillStyle = "#4bc0c0";
-          ctxApprox.fill();
-
-          t += dt;
-        }
+        t += dt;
         requestAnimationFrame(animate);
       }
 
