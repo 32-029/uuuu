@@ -2,37 +2,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>단진자 궤적 시뮬레이터</title>
+  <title>단진자 시뮬레이터</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
+    body { font-family: Arial, sans-serif; padding: 10px; }
     canvas { border: 1px solid #ccc; background: #fff; margin: 10px; }
-    .controls { margin-bottom: 20px; }
-    .canvas-container { display: flex; gap: 20px; }
-    .result-table { margin-top: 20px; border-collapse: collapse; }
-    .result-table th, .result-table td { border: 1px solid #ccc; padding: 5px 10px; text-align: center; }
+    .controls { margin-bottom: 10px; }
+    .canvas-container { display: flex; gap: 10px; }
+    .result-table { margin-top: 10px; border-collapse: collapse; font-size: 14px; }
+    .result-table th, .result-table td { border: 1px solid #ccc; padding: 4px 8px; text-align: center; }
   </style>
 </head>
 <body>
-  <h1>단진자 궤적 시뮬레이터</h1>
   <div class="controls">
     <label for="theta0">초기 각도 (도): </label>
     <input type="number" id="theta0" value="10" min="0" max="180" step="1" />
-    <button id="startBtn">시뮬레이션 시작</button>
+    <button id="startBtn">시작</button>
   </div>  <div class="canvas-container">
-    <div>
-      <h3>일반 해 (비선형)</h3>
-      <canvas id="generalCanvas" width="400" height="400"></canvas>
-    </div>
-    <div>
-      <h3>근사 해 (소각도)</h3>
-      <canvas id="approxCanvas" width="400" height="400"></canvas>
-    </div>
-  </div>  <h3>주기 오차 비교</h3>
-  <table class="result-table">
+    <canvas id="generalCanvas" width="300" height="300"></canvas>
+    <canvas id="approxCanvas" width="300" height="300"></canvas>
+  </div>  <table class="result-table">
     <thead>
       <tr>
         <th>θ₀ (°)</th>
-        <th>실제 주기 오차 (%)</th>
+        <th>오차 (%)</th>
       </tr>
     </thead>
     <tbody id="resultBody"></tbody>
@@ -59,18 +51,15 @@
     function simulate(theta0) {
       let t = 0;
 
-      // 일반 해 변수
       let thetaVal = toRad(theta0);
       let vel = 0;
 
-      // 근사 해 변수
       const omega = Math.sqrt(g / L);
 
       const originX = generalCanvas.width / 2;
-      const originY = 100;
-      const scale = 150;
+      const originY = 80;
+      const scale = 100;
 
-      // 주기 측정용 변수
       let lastGeneralCross = null;
       let lastApproxCross = null;
       let generalPeriod = null;
@@ -82,7 +71,6 @@
         ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
         ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
 
-        // 일반 해 업데이트
         const acc = -(g / L) * Math.sin(thetaVal);
         vel += acc * dt;
         thetaVal += vel * dt;
@@ -98,11 +86,10 @@
         ctxGeneral.stroke();
 
         ctxGeneral.beginPath();
-        ctxGeneral.arc(x, y, 8, 0, 2 * Math.PI);
+        ctxGeneral.arc(x, y, 6, 0, 2 * Math.PI);
         ctxGeneral.fillStyle = "#ff6384";
         ctxGeneral.fill();
 
-        // 근사 해 업데이트
         const approxTheta = toRad(theta0) * Math.cos(omega * t);
 
         const ax = originX + L * scale * Math.sin(approxTheta);
@@ -116,11 +103,10 @@
         ctxApprox.stroke();
 
         ctxApprox.beginPath();
-        ctxApprox.arc(ax, ay, 8, 0, 2 * Math.PI);
+        ctxApprox.arc(ax, ay, 6, 0, 2 * Math.PI);
         ctxApprox.fillStyle = "#4bc0c0";
         ctxApprox.fill();
 
-        // 주기 측정: 일반 해가 원점을 양수방향으로 통과할 때 기록
         const currentGeneralSign = Math.sign(thetaVal);
         if (prevGeneralSign < 0 && currentGeneralSign >= 0) {
           if (lastGeneralCross !== null && generalPeriod === null) {
@@ -130,7 +116,6 @@
         }
         prevGeneralSign = currentGeneralSign;
 
-        // 주기 측정: 근사 해가 원점을 양수방향으로 통과할 때 기록
         const currentApproxSign = Math.sign(approxTheta);
         if (prevApproxSign < 0 && currentApproxSign >= 0) {
           if (lastApproxCross !== null && approxPeriod === null) {
@@ -150,7 +135,7 @@
               <td>${errorPercent >= 0 ? "+" : ""}${errorPercent.toFixed(3)}%</td>
             </tr>`;
           resultBody.insertAdjacentHTML("beforeend", row);
-          return; // 측정 후 종료
+          return;
         }
 
         requestAnimationFrame(animate);
