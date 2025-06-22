@@ -5,8 +5,9 @@
   <title>단진자 궤적 시뮬레이터</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
-    canvas { border: 1px solid #ccc; background: #fff; }
+    canvas { border: 1px solid #ccc; background: #fff; margin: 10px; }
     .controls { margin-bottom: 20px; }
+    .canvas-container { display: flex; gap: 20px; }
   </style>
 </head>
 <body>
@@ -15,8 +16,16 @@
     <label for="theta0">초기 각도 (도): </label>
     <input type="number" id="theta0" value="10" min="0" max="180" step="1" />
     <button id="startBtn">시뮬레이션 시작</button>
-  </div>
-  <canvas id="pendulumCanvas" width="500" height="500"></canvas>  <script>
+  </div>  <div class="canvas-container">
+    <div>
+      <h3>일반 해 (비선형)</h3>
+      <canvas id="generalCanvas" width="400" height="400"></canvas>
+    </div>
+    <div>
+      <h3>근사 해 (소각도)</h3>
+      <canvas id="approxCanvas" width="400" height="400"></canvas>
+    </div>
+  </div>  <script>
     const g = 9.81;
     const L = 1.0;
     const dt = 0.01;
@@ -25,8 +34,10 @@
 
     const thetaInput = document.getElementById("theta0");
     const startBtn = document.getElementById("startBtn");
-    const canvas = document.getElementById("pendulumCanvas");
-    const ctx = canvas.getContext("2d");
+    const generalCanvas = document.getElementById("generalCanvas");
+    const approxCanvas = document.getElementById("approxCanvas");
+    const ctxGeneral = generalCanvas.getContext("2d");
+    const ctxApprox = approxCanvas.getContext("2d");
 
     startBtn.addEventListener("click", () => {
       const theta0 = parseFloat(thetaInput.value);
@@ -34,11 +45,12 @@
     });
 
     function simulate(theta0) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
+      ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
 
-      const originX = canvas.width / 2;
+      const originX = generalCanvas.width / 2;
       const originY = 100;
-      const scale = 180;
+      const scale = 150;
       let t = 0;
 
       let thetaVal = theta0;
@@ -57,10 +69,22 @@
           const x = originX + L * scale * Math.sin(toRad(thetaVal));
           const y = originY + L * scale * Math.cos(toRad(thetaVal));
 
-          ctx.beginPath();
-          ctx.arc(x, y, 1.5, 0, 2 * Math.PI);
-          ctx.fillStyle = "#ff6384";
-          ctx.fill();
+          ctxGeneral.beginPath();
+          ctxGeneral.arc(x, y, 1.5, 0, 2 * Math.PI);
+          ctxGeneral.fillStyle = "#ff6384";
+          ctxGeneral.fill();
+
+          ctxGeneral.beginPath();
+          ctxGeneral.moveTo(originX, originY);
+          ctxGeneral.lineTo(x, y);
+          ctxGeneral.strokeStyle = "#ff6384";
+          ctxGeneral.lineWidth = 1;
+          ctxGeneral.stroke();
+
+          ctxGeneral.beginPath();
+          ctxGeneral.arc(x, y, 8, 0, 2 * Math.PI);
+          ctxGeneral.fillStyle = "#ff6384";
+          ctxGeneral.fill();
 
           // 근사 해
           approxTheta = theta0 * Math.cos(omega * t);
@@ -68,10 +92,22 @@
           const ax = originX + L * scale * Math.sin(toRad(approxTheta));
           const ay = originY + L * scale * Math.cos(toRad(approxTheta));
 
-          ctx.beginPath();
-          ctx.arc(ax, ay, 1.5, 0, 2 * Math.PI);
-          ctx.fillStyle = "#4bc0c0";
-          ctx.fill();
+          ctxApprox.beginPath();
+          ctxApprox.arc(ax, ay, 1.5, 0, 2 * Math.PI);
+          ctxApprox.fillStyle = "#4bc0c0";
+          ctxApprox.fill();
+
+          ctxApprox.beginPath();
+          ctxApprox.moveTo(originX, originY);
+          ctxApprox.lineTo(ax, ay);
+          ctxApprox.strokeStyle = "#4bc0c0";
+          ctxApprox.lineWidth = 1;
+          ctxApprox.stroke();
+
+          ctxApprox.beginPath();
+          ctxApprox.arc(ax, ay, 8, 0, 2 * Math.PI);
+          ctxApprox.fillStyle = "#4bc0c0";
+          ctxApprox.fill();
 
           t += dt;
         }
