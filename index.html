@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,10 +18,14 @@
     <label for="theta0">초기 각도 : </label>
     <input type="number" id="theta0" value="10" min="0" max="180" step="1" />
     <button id="startBtn">시작</button>
-  </div>  <div class="canvas-container">
+  </div>
+
+  <div class="canvas-container">
     <canvas id="generalCanvas" width="300" height="300"></canvas>
     <canvas id="approxCanvas" width="300" height="300"></canvas>
-  </div>  <table class="result-table">
+  </div>
+
+  <table class="result-table">
     <thead>
       <tr>
         <th>초기 각도</th>
@@ -28,7 +33,9 @@
       </tr>
     </thead>
     <tbody id="resultBody"></tbody>
-  </table>  <script>
+  </table>
+
+  <script>
     const g = 9.81;
     const L = 1.0;
     const dt = 0.01;
@@ -49,111 +56,106 @@
     });
 
     function simulate(theta0) {
-  let t = 0;
-  let thetaVal = toRad(theta0);
-  let vel = 0;
+      let t = 0;
+      let thetaVal = toRad(theta0);
+      let vel = 0;
 
-  const omega = Math.sqrt(g / L);
+      const omega = Math.sqrt(g / L);
 
-  const originX = generalCanvas.width / 2;
-  const originY = 80;
-  const scale = 100;
+      const originX = generalCanvas.width / 2;
+      const originY = 80;
+      const scale = 100;
 
-  const startTheta = toRad(theta0);
-  const approxStartTheta = startTheta;
+      const startTheta = toRad(theta0);
+      const approxStartTheta = startTheta;
 
-  let firstGeneralCross = null;
-  let generalPeriod = null;
-  let generalCrossCount = 0;
+      let firstGeneralCross = null;
+      let generalPeriod = null;
+      let generalCrossCount = 0;
 
-  let firstApproxCross = null;
-  let approxPeriod = null;
-  let approxCrossCount = 0;
+      let firstApproxCross = null;
+      let approxPeriod = null;
+      let approxCrossCount = 0;
 
-  function animate() {
-    ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
-    ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
+      function animate() {
+        ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
+        ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
 
-    // 일반 해석 운동
-    const acc = -(g / L) * Math.sin(thetaVal);
-    vel += acc * dt;
-    thetaVal += vel * dt;
+        // 일반 해석 운동
+        const acc = -(g / L) * Math.sin(thetaVal);
+        vel += acc * dt;
+        thetaVal += vel * dt;
 
-    const x = originX + L * scale * Math.sin(thetaVal);
-    const y = originY + L * scale * Math.cos(thetaVal);
+        const x = originX + L * scale * Math.sin(thetaVal);
+        const y = originY + L * scale * Math.cos(thetaVal);
 
-    ctxGeneral.beginPath();
-    ctxGeneral.moveTo(originX, originY);
-    ctxGeneral.lineTo(x, y);
-    ctxGeneral.strokeStyle = "#000000";
-    ctxGeneral.lineWidth = 2;
-    ctxGeneral.stroke();
+        ctxGeneral.beginPath();
+        ctxGeneral.moveTo(originX, originY);
+        ctxGeneral.lineTo(x, y);
+        ctxGeneral.strokeStyle = "#000000";
+        ctxGeneral.lineWidth = 2;
+        ctxGeneral.stroke();
 
-    ctxGeneral.beginPath();
-    ctxGeneral.arc(x, y, 6, 0, 2 * Math.PI);
-    ctxGeneral.fillStyle = "#000000";
-    ctxGeneral.fill();
+        ctxGeneral.beginPath();
+        ctxGeneral.arc(x, y, 6, 0, 2 * Math.PI);
+        ctxGeneral.fillStyle = "#000000";
+        ctxGeneral.fill();
 
-    // 근사 해석 운동
-    const approxTheta = approxStartTheta * Math.cos(omega * t);
-    const ax = originX + L * scale * Math.sin(approxTheta);
-    const ay = originY + L * scale * Math.cos(approxTheta);
+        // 근사 해석 운동
+        const approxTheta = approxStartTheta * Math.cos(omega * t);
+        const ax = originX + L * scale * Math.sin(approxTheta);
+        const ay = originY + L * scale * Math.cos(approxTheta);
 
-    ctxApprox.beginPath();
-    ctxApprox.moveTo(originX, originY);
-    ctxApprox.lineTo(ax, ay);
-    ctxApprox.strokeStyle = "#000000";
-    ctxApprox.lineWidth = 2;
-    ctxApprox.stroke();
+        ctxApprox.beginPath();
+        ctxApprox.moveTo(originX, originY);
+        ctxApprox.lineTo(ax, ay);
+        ctxApprox.strokeStyle = "#000000";
+        ctxApprox.lineWidth = 2;
+        ctxApprox.stroke();
 
-    ctxApprox.beginPath();
-    ctxApprox.arc(ax, ay, 6, 0, 2 * Math.PI);
-    ctxApprox.fillStyle = "#000000";
-    ctxApprox.fill();
+        ctxApprox.beginPath();
+        ctxApprox.arc(ax, ay, 6, 0, 2 * Math.PI);
+        ctxApprox.fillStyle = "#000000";
+        ctxApprox.fill();
 
-    // 일반 해석 주기 측정 (두 번 초기 위치 통과할 때까지)
-    if (Math.abs(thetaVal - startTheta) < 0.01 && vel < 0) {
-      generalCrossCount++;
-      if (generalCrossCount === 1) {
-        firstGeneralCross = t;
-      } else if (generalCrossCount === 2) {
-        generalPeriod = t - firstGeneralCross;
-      }
-    }
+        // 일반 해석 주기 측정
+        if (Math.abs(thetaVal - startTheta) < 0.01 && vel < 0) {
+          generalCrossCount++;
+          if (generalCrossCount === 1) {
+            firstGeneralCross = t;
+          } else if (generalCrossCount === 2) {
+            generalPeriod = t - firstGeneralCross;
+          }
+        }
 
-    // 근사 해석 주기 측정
-    if (Math.abs(approxTheta - approxStartTheta) < 0.01 && Math.sin(omega * t) < 0) {
-      approxCrossCount++;
-      if (approxCrossCount === 1) {
-        firstApproxCross = t;
-      } else if (approxCrossCount === 2) {
-        approxPeriod = t - firstApproxCross;
-      }
-    }
+        // 근사 해석 주기 측정
+        if (Math.abs(approxTheta - approxStartTheta) < 0.01 && Math.sin(omega * t) < 0) {
+          approxCrossCount++;
+          if (approxCrossCount === 1) {
+            firstApproxCross = t;
+          } else if (approxCrossCount === 2) {
+            approxPeriod = t - firstApproxCross;
+          }
+        }
 
-    t += dt;
+        t += dt;
 
-    if (generalPeriod !== null && approxPeriod !== null) {
-      const errorPercent = ((generalPeriod - approxPeriod) / approxPeriod) * 100;
-      const row = `
-        <tr>
-          <td>${theta0.toFixed(1)}</td>
-          <td>${errorPercent >= 0 ? "+" : ""}${errorPercent.toFixed(3)}%</td>
-        </tr>`;
-      resultBody.insertAdjacentHTML("beforeend", row);
-      return;
-    }
-
-    requestAnimationFrame(animate);
-  }
-
-  animate();
-    }
+        if (generalPeriod !== null && approxPeriod !== null) {
+          const errorPercent = ((generalPeriod - approxPeriod) / approxPeriod) * 100;
+          const row = `
+            <tr>
+              <td>${theta0.toFixed(1)}</td>
+              <td>${errorPercent >= 0 ? "+" : ""}${errorPercent.toFixed(3)}%</td>
+            </tr>`;
+          resultBody.insertAdjacentHTML("beforeend", row);
+          return;
+        }
 
         requestAnimationFrame(animate);
       }
 
       animate();
     }
-  </script></body>
+  </script>
+</body>
 </html>
