@@ -8,6 +8,8 @@
     canvas { border: 1px solid #ccc; background: #fff; margin: 10px; }
     .controls { margin-bottom: 20px; }
     .canvas-container { display: flex; gap: 20px; }
+    .result-table { margin-top: 20px; border-collapse: collapse; }
+    .result-table th, .result-table td { border: 1px solid #ccc; padding: 5px 10px; text-align: center; }
   </style>
 </head>
 <body>
@@ -25,7 +27,18 @@
       <h3>근사 해 (소각도)</h3>
       <canvas id="approxCanvas" width="400" height="400"></canvas>
     </div>
-  </div>  <script>
+  </div>  <h3>주기 비교 (시뮬레이션 측정값)</h3>
+  <table class="result-table">
+    <thead>
+      <tr>
+        <th>초기 각도 (도)</th>
+        <th>일반 해 주기 (s)</th>
+        <th>근사 해 주기 (s)</th>
+        <th>오차 (%)</th>
+      </tr>
+    </thead>
+    <tbody id="resultBody"></tbody>
+  </table>  <script>
     const g = 9.81;
     const L = 1.0;
     const dt = 0.01;
@@ -38,6 +51,7 @@
     const approxCanvas = document.getElementById("approxCanvas");
     const ctxGeneral = generalCanvas.getContext("2d");
     const ctxApprox = approxCanvas.getContext("2d");
+    const resultBody = document.getElementById("resultBody");
 
     startBtn.addEventListener("click", () => {
       const theta0 = parseFloat(thetaInput.value);
@@ -57,6 +71,14 @@
       const originX = generalCanvas.width / 2;
       const originY = 100;
       const scale = 150;
+
+      // 주기 측정용 변수
+      let lastGeneralCross = null;
+      let lastApproxCross = null;
+      let generalPeriod = null;
+      let approxPeriod = null;
+      let prevGeneralSign = Math.sign(thetaVal);
+      let prevApproxSign = Math.sign(theta0);
 
       function animate() {
         ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
@@ -100,7 +122,35 @@
         ctxApprox.fillStyle = "#4bc0c0";
         ctxApprox.fill();
 
+        // 주기 측정: 일반 해가 원점을 양수방향으로 통과할 때 기록
+        const currentGeneralSign = Math.sign(thetaVal);
+        if (prevGeneralSign < 0 && currentGeneralSign >= 0) {
+          if (lastGeneralCross !== null && generalPeriod === null) {
+            generalPeriod = t - lastGeneralCross;
+          }
+          lastGeneralCross = t;
+        }
+        prevGeneralSign = currentGeneralSign;
+
+        // 주기 측정: 근사 해가 원점을 양수방향으로 통과할 때 기록
+        const currentApproxSign = Math.sign(approxTheta);
+        if (prevApproxSign < 0 && currentApproxSign >= 0) {
+          if (lastApproxCross !== null && approxPeriod === null) {
+            approxPeriod = t - lastApproxCross;
+          }
+          lastApproxCross = t;
+        }
+        prevApproxSign = currentApproxSign;
+
         t += dt;
+
+        if (generalPeriod !== null && approxPeriod !== null) {
+          const errorPercent = Math.abs(generalPeriod - approxPeriod) / approxPeriod * 100;
+          const row = `<tr><td>${theta0.toFixed(1)}</td><td>${generalPeriod.toFixed(3)}</td><td>${approxPeriod.toFixed(3)}</td><td>${errorPercent.toFixed(2)}</td></tr>`;
+          resultBody.insertAdjacentHTML("beforeend", row);
+          return; // 측정 후 종료
+        }
+
         requestAnimationFrame(animate);
       }
 
