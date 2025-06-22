@@ -31,7 +31,6 @@
     const dt = 0.01;
 
     const toRad = (deg) => deg * Math.PI / 180;
-    const toDeg = (rad) => rad * 180 / Math.PI;
 
     const thetaInput = document.getElementById("theta0");
     const startBtn = document.getElementById("startBtn");
@@ -83,7 +82,7 @@
         ctxGeneral.fillStyle = "#ff6384";
         ctxGeneral.fill();
 
-        // 근사 해 업데이트 (theta0는 도 단위니까 변환)
+        // 근사 해 업데이트
         const approxTheta = toRad(theta0) * Math.cos(omega * t);
 
         const ax = originX + L * scale * Math.sin(approxTheta);
