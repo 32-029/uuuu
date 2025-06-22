@@ -14,7 +14,7 @@
 </head>
 <body>
   <div class="controls">
-    <label for="theta0">초기 각도 (도): </label>
+    <label for="theta0">초기 각도 : </label>
     <input type="number" id="theta0" value="10" min="0" max="180" step="1" />
     <button id="startBtn">시작</button>
   </div>  <div class="canvas-container">
@@ -23,7 +23,7 @@
   </div>  <table class="result-table">
     <thead>
       <tr>
-        <th>θ₀ (°)</th>
+        <th>초기 각도</th>
         <th>오차 (%)</th>
       </tr>
     </thead>
@@ -81,13 +81,13 @@
         ctxGeneral.beginPath();
         ctxGeneral.moveTo(originX, originY);
         ctxGeneral.lineTo(x, y);
-        ctxGeneral.strokeStyle = "#ff6384";
+        ctxGeneral.strokeStyle = "#000000";
         ctxGeneral.lineWidth = 2;
         ctxGeneral.stroke();
 
         ctxGeneral.beginPath();
         ctxGeneral.arc(x, y, 6, 0, 2 * Math.PI);
-        ctxGeneral.fillStyle = "#ff6384";
+        ctxGeneral.fillStyle = "#000000";
         ctxGeneral.fill();
 
         const approxTheta = toRad(theta0) * Math.cos(omega * t);
@@ -98,13 +98,13 @@
         ctxApprox.beginPath();
         ctxApprox.moveTo(originX, originY);
         ctxApprox.lineTo(ax, ay);
-        ctxApprox.strokeStyle = "#4bc0c0";
+        ctxApprox.strokeStyle = "#000000";
         ctxApprox.lineWidth = 2;
         ctxApprox.stroke();
 
         ctxApprox.beginPath();
         ctxApprox.arc(ax, ay, 6, 0, 2 * Math.PI);
-        ctxApprox.fillStyle = "#4bc0c0";
+        ctxApprox.fillStyle = "#000000";
         ctxApprox.fill();
 
         const currentGeneralSign = Math.sign(thetaVal);
