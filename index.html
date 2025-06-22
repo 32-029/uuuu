@@ -49,94 +49,106 @@
     });
 
     function simulate(theta0) {
-      let t = 0;
+  let t = 0;
+  let thetaVal = toRad(theta0);
+  let vel = 0;
 
-      let thetaVal = toRad(theta0);
-      let vel = 0;
+  const omega = Math.sqrt(g / L);
 
-      const omega = Math.sqrt(g / L);
+  const originX = generalCanvas.width / 2;
+  const originY = 80;
+  const scale = 100;
 
-      const originX = generalCanvas.width / 2;
-      const originY = 80;
-      const scale = 100;
+  const startTheta = toRad(theta0);
+  const approxStartTheta = startTheta;
 
-      let lastGeneralCross = null;
-      let lastApproxCross = null;
-      let generalPeriod = null;
-      let approxPeriod = null;
-      let prevGeneralSign = Math.sign(thetaVal);
-      let prevApproxSign = Math.sign(theta0);
+  let firstGeneralCross = null;
+  let generalPeriod = null;
+  let generalCrossCount = 0;
 
-      function animate() {
-        ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
-        ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
+  let firstApproxCross = null;
+  let approxPeriod = null;
+  let approxCrossCount = 0;
 
-        const acc = -(g / L) * Math.sin(thetaVal);
-        vel += acc * dt;
-        thetaVal += vel * dt;
+  function animate() {
+    ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
+    ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
 
-        const x = originX + L * scale * Math.sin(thetaVal);
-        const y = originY + L * scale * Math.cos(thetaVal);
+    // 일반 해석 운동
+    const acc = -(g / L) * Math.sin(thetaVal);
+    vel += acc * dt;
+    thetaVal += vel * dt;
 
-        ctxGeneral.beginPath();
-        ctxGeneral.moveTo(originX, originY);
-        ctxGeneral.lineTo(x, y);
-        ctxGeneral.strokeStyle = "#000000";
-        ctxGeneral.lineWidth = 2;
-        ctxGeneral.stroke();
+    const x = originX + L * scale * Math.sin(thetaVal);
+    const y = originY + L * scale * Math.cos(thetaVal);
 
-        ctxGeneral.beginPath();
-        ctxGeneral.arc(x, y, 6, 0, 2 * Math.PI);
-        ctxGeneral.fillStyle = "#000000";
-        ctxGeneral.fill();
+    ctxGeneral.beginPath();
+    ctxGeneral.moveTo(originX, originY);
+    ctxGeneral.lineTo(x, y);
+    ctxGeneral.strokeStyle = "#000000";
+    ctxGeneral.lineWidth = 2;
+    ctxGeneral.stroke();
 
-        const approxTheta = toRad(theta0) * Math.cos(omega * t);
+    ctxGeneral.beginPath();
+    ctxGeneral.arc(x, y, 6, 0, 2 * Math.PI);
+    ctxGeneral.fillStyle = "#000000";
+    ctxGeneral.fill();
 
-        const ax = originX + L * scale * Math.sin(approxTheta);
-        const ay = originY + L * scale * Math.cos(approxTheta);
+    // 근사 해석 운동
+    const approxTheta = approxStartTheta * Math.cos(omega * t);
+    const ax = originX + L * scale * Math.sin(approxTheta);
+    const ay = originY + L * scale * Math.cos(approxTheta);
 
-        ctxApprox.beginPath();
-        ctxApprox.moveTo(originX, originY);
-        ctxApprox.lineTo(ax, ay);
-        ctxApprox.strokeStyle = "#000000";
-        ctxApprox.lineWidth = 2;
-        ctxApprox.stroke();
+    ctxApprox.beginPath();
+    ctxApprox.moveTo(originX, originY);
+    ctxApprox.lineTo(ax, ay);
+    ctxApprox.strokeStyle = "#000000";
+    ctxApprox.lineWidth = 2;
+    ctxApprox.stroke();
 
-        ctxApprox.beginPath();
-        ctxApprox.arc(ax, ay, 6, 0, 2 * Math.PI);
-        ctxApprox.fillStyle = "#000000";
-        ctxApprox.fill();
+    ctxApprox.beginPath();
+    ctxApprox.arc(ax, ay, 6, 0, 2 * Math.PI);
+    ctxApprox.fillStyle = "#000000";
+    ctxApprox.fill();
 
-        const currentGeneralSign = Math.sign(thetaVal);
-        if (prevGeneralSign < 0 && currentGeneralSign >= 0) {
-          if (lastGeneralCross !== null && generalPeriod === null) {
-            generalPeriod = t - lastGeneralCross;
-          }
-          lastGeneralCross = t;
-        }
-        prevGeneralSign = currentGeneralSign;
+    // 일반 해석 주기 측정 (두 번 초기 위치 통과할 때까지)
+    if (Math.abs(thetaVal - startTheta) < 0.01 && vel < 0) {
+      generalCrossCount++;
+      if (generalCrossCount === 1) {
+        firstGeneralCross = t;
+      } else if (generalCrossCount === 2) {
+        generalPeriod = t - firstGeneralCross;
+      }
+    }
 
-        const currentApproxSign = Math.sign(approxTheta);
-        if (prevApproxSign < 0 && currentApproxSign >= 0) {
-          if (lastApproxCross !== null && approxPeriod === null) {
-            approxPeriod = t - lastApproxCross;
-          }
-          lastApproxCross = t;
-        }
-        prevApproxSign = currentApproxSign;
+    // 근사 해석 주기 측정
+    if (Math.abs(approxTheta - approxStartTheta) < 0.01 && Math.sin(omega * t) < 0) {
+      approxCrossCount++;
+      if (approxCrossCount === 1) {
+        firstApproxCross = t;
+      } else if (approxCrossCount === 2) {
+        approxPeriod = t - firstApproxCross;
+      }
+    }
 
-        t += dt;
+    t += dt;
 
-        if (generalPeriod !== null && approxPeriod !== null) {
-          const errorPercent = ((generalPeriod - approxPeriod) / approxPeriod) * 100;
-          const row = `
-            <tr>
-              <td>${theta0.toFixed(1)}</td>
-              <td>${errorPercent >= 0 ? "+" : ""}${errorPercent.toFixed(3)}%</td>
-            </tr>`;
-          resultBody.insertAdjacentHTML("beforeend", row);
-          return;
-        }
+    if (generalPeriod !== null && approxPeriod !== null) {
+      const errorPercent = ((generalPeriod - approxPeriod) / approxPeriod) * 100;
+      const row = `
+        <tr>
+          <td>${theta0.toFixed(1)}</td>
+          <td>${errorPercent >= 0 ? "+" : ""}${errorPercent.toFixed(3)}%</td>
+        </tr>`;
+      resultBody.insertAdjacentHTML("beforeend", row);
+      return;
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+    }
 
         requestAnimationFrame(animate);
       }
