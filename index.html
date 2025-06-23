@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>단진자 시뮬레이터</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 10px; }
-    canvas { border: 1px solid #ccc; background: #fff; margin: 10px; }
-    .controls { margin-bottom: 10px; }
-    .canvas-container { display: flex; gap: 10px; }
-    .result-table { margin-top: 10px; border-collapse: collapse; font-size: 14px; }
-    .result-table th, .result-table td { border: 1px solid #ccc; padding: 4px 8px; text-align: center; }
+
   </style>
 </head>
 <body>
@@ -52,14 +47,7 @@
 
     startBtn.addEventListener("click", () => {
       if (animationId) cancelAnimationFrame(animationId);
-      resultBody.innerHTML = "";
       const theta0 = parseFloat(thetaInput.value);
-
-      if (isNaN(theta0) || theta0 <= 0 || theta0 > 180) {
-        alert("각도는 0도 초과, 180도 이하로 입력해주세요.");
-        return;
-      }
-
       simulate(theta0);
     });
 
