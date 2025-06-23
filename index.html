@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>단진자 시뮬레이터</title>
   <style>
-
+    body { font-family: Arial, sans-serif; padding: 10px; }
+    canvas { border: 1px solid #ccc; background: #fff; margin: 10px; }
+    .controls { margin-bottom: 10px; }
+    .canvas-container { display: flex; gap: 10px; }
+    .result-table { margin-top: 10px; border-collapse: collapse; font-size: 14px; }
+    .result-table th, .result-table td { border: 1px solid #ccc; padding: 4px 8px; text-align: center; }
   </style>
 </head>
 <body>
@@ -85,7 +90,7 @@
         ctxGeneral.moveTo(originX, originY);
         ctxGeneral.lineTo(x, y);
         ctxGeneral.strokeStyle = "#000000";
-        ctxGeneral.lineWidth = 2;
+        ctxGeneral.lineWidth = 1;
         ctxGeneral.stroke();
 
         ctxGeneral.beginPath();
@@ -102,7 +107,7 @@
         ctxApprox.moveTo(originX, originY);
         ctxApprox.lineTo(ax, ay);
         ctxApprox.strokeStyle = "#000000";
-        ctxApprox.lineWidth = 2;
+        ctxApprox.lineWidth = 1;
         ctxApprox.stroke();
 
         ctxApprox.beginPath();
