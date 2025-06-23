@@ -19,12 +19,10 @@
     <input type="number" id="theta0" value="10" min="0" max="180" step="1" />
     <button id="startBtn">시작</button>
   </div>
-
   <div class="canvas-container">
     <canvas id="generalCanvas" width="300" height="300"></canvas>
     <canvas id="approxCanvas" width="300" height="300"></canvas>
   </div>
-
   <table class="result-table">
     <thead>
       <tr>
@@ -50,8 +48,18 @@
     const ctxApprox = approxCanvas.getContext("2d");
     const resultBody = document.getElementById("resultBody");
 
+    let animationId = null;
+
     startBtn.addEventListener("click", () => {
+      if (animationId) cancelAnimationFrame(animationId);
+      resultBody.innerHTML = "";
       const theta0 = parseFloat(thetaInput.value);
+
+      if (isNaN(theta0) || theta0 <= 0 || theta0 > 180) {
+        alert("각도는 0도 초과, 180도 이하로 입력해주세요.");
+        return;
+      }
+
       simulate(theta0);
     });
 
@@ -59,29 +67,25 @@
       let t = 0;
       let thetaVal = toRad(theta0);
       let vel = 0;
-
       const omega = Math.sqrt(g / L);
 
       const originX = generalCanvas.width / 2;
       const originY = 80;
       const scale = 100;
 
-      const startTheta = toRad(theta0);
-      const approxStartTheta = startTheta;
-
-      let firstGeneralCross = null;
+      let lastGeneralCross = null;
+      let lastApproxCross = null;
       let generalPeriod = null;
-      let generalCrossCount = 0;
-
-      let firstApproxCross = null;
       let approxPeriod = null;
-      let approxCrossCount = 0;
+      let prevGeneralSign = Math.sign(thetaVal);
+      let prevApproxSign = Math.sign(theta0);
+
+      let resultDisplayed = false;
 
       function animate() {
         ctxGeneral.clearRect(0, 0, generalCanvas.width, generalCanvas.height);
         ctxApprox.clearRect(0, 0, approxCanvas.width, approxCanvas.height);
 
-        // 일반 해석 운동
         const acc = -(g / L) * Math.sin(thetaVal);
         vel += acc * dt;
         thetaVal += vel * dt;
@@ -101,8 +105,8 @@
         ctxGeneral.fillStyle = "#000000";
         ctxGeneral.fill();
 
-        // 근사 해석 운동
-        const approxTheta = approxStartTheta * Math.cos(omega * t);
+        const approxTheta = toRad(theta0) * Math.cos(omega * t);
+
         const ax = originX + L * scale * Math.sin(approxTheta);
         const ay = originY + L * scale * Math.cos(approxTheta);
 
@@ -118,29 +122,25 @@
         ctxApprox.fillStyle = "#000000";
         ctxApprox.fill();
 
-        // 일반 해석 주기 측정
-        if (Math.abs(thetaVal - startTheta) < 0.01 && vel < 0) {
-          generalCrossCount++;
-          if (generalCrossCount === 1) {
-            firstGeneralCross = t;
-          } else if (generalCrossCount === 2) {
-            generalPeriod = t - firstGeneralCross;
+        const currentGeneralSign = Math.sign(thetaVal);
+        if (prevGeneralSign < 0 && currentGeneralSign >= 0) {
+          if (lastGeneralCross !== null && generalPeriod === null) {
+            generalPeriod = t - lastGeneralCross;
           }
+          lastGeneralCross = t;
         }
+        prevGeneralSign = currentGeneralSign;
 
-        // 근사 해석 주기 측정
-        if (Math.abs(approxTheta - approxStartTheta) < 0.01 && Math.sin(omega * t) < 0) {
-          approxCrossCount++;
-          if (approxCrossCount === 1) {
-            firstApproxCross = t;
-          } else if (approxCrossCount === 2) {
-            approxPeriod = t - firstApproxCross;
+        const currentApproxSign = Math.sign(approxTheta);
+        if (prevApproxSign < 0 && currentApproxSign >= 0) {
+          if (lastApproxCross !== null && approxPeriod === null) {
+            approxPeriod = t - lastApproxCross;
           }
+          lastApproxCross = t;
         }
+        prevApproxSign = currentApproxSign;
 
-        t += dt;
-
-        if (generalPeriod !== null && approxPeriod !== null) {
+        if (generalPeriod !== null && approxPeriod !== null && !resultDisplayed) {
           const errorPercent = ((generalPeriod - approxPeriod) / approxPeriod) * 100;
           const row = `
             <tr>
@@ -148,10 +148,12 @@
               <td>${errorPercent >= 0 ? "+" : ""}${errorPercent.toFixed(3)}%</td>
             </tr>`;
           resultBody.insertAdjacentHTML("beforeend", row);
-          return;
+          resultDisplayed = true;
         }
 
-        requestAnimationFrame(animate);
+        t += dt;
+
+        animationId = requestAnimationFrame(animate);
       }
 
       animate();
